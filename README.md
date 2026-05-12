@@ -5,6 +5,57 @@ No framework, PHP changes HTML direactly！
 
 本项目就一个文件JsMaker.php，用于PHP生成对前端HTML更改的JS。
 
+## DEMO
+
+在线体验：https://i.trtn.cn/projects/PHP-JsMaker/demo.php
+
+```
+<?php
+
+require_once __DIR__ . '/JsMaker.php';
+
+if (isset($_POST['action'])) {
+    $currentCount = (int)$_POST['count'];
+    if ($_POST['action'] === 'add') {
+        $newCount = $currentCount + 1;
+    } else {
+        $newCount = $currentCount - 1;
+    }
+    $js = JsMaker::eChange('!p #count-value', 'innerText', $newCount);
+    $js .= JsMaker::eChange('!p input[name=count]', 'value', $newCount);
+
+    exit('<script>' . $js . '</script>');
+}
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>JsMakerDemo</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding-top: 50px; }
+        #count-value { font-size: 3rem; font-weight: bold; color: #444; }
+        button { padding: 10px 20px; font-size: 1.2rem; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <h1>JsMakerDemo</h1>
+    <div id="count-value">0</div>
+
+    <form action="?" method="post" target="rpc_frame">
+        <input type="hidden" name="count" value="0">
+        <button type="submit" name="action" value="sub">-</button>
+        <button type="submit" name="action" value="add">+</button>
+    </form>
+
+    <iframe name="rpc_frame" style="display:none;"></iframe>
+
+</body>
+</html>
+```
+
 ## 用法
 
 ### 1. 选择器语法
