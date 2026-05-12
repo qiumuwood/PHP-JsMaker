@@ -9,7 +9,7 @@ class JsMaker {
             str_starts_with($selector, '!p2') => ['parent.parent', substr($selector, 3)],
             str_starts_with($selector, '!p')  => ['parent', substr($selector, 2)],
             str_starts_with($selector, '!t')  => ['top', substr($selector, 2)],
-            preg_match('/^!<(.+?)>/', $selector, $m) => [$m[1], substr($selector, strlen($m[0]))],
+            (bool) preg_match('/^!<(.+)>/', $selector, $m) => [$m[1], substr($selector, strlen($m[0]))],
             default => ['', $selector]
         };
     }
@@ -24,14 +24,23 @@ class JsMaker {
         };
     }
     
+    //rb: RAW BASE
+    public static function rbChange($base, $attr, $val) {
+        return ($base ? $base . '.' : '') . $attr . '=' . self::encodeJsValue($val) . ';';
+    }
+    
+    public static function rbCall($base, $func, ...$args) {
+        return ($base ? $base . '.' : '') . $func . '(' . implode(',', array_map(fn($arg) => self::encodeJsValue($arg), $args))  . ');';
+    }
+    
     public static function change($selector, $attr, $val) {
         [$base,] = self::parseSelector($selector);
-        return ($base ? $base . '.' : '') . $attr . '=' . self::encodeJsValue($val) . ';';
+        return self::rbChange($base, $attr, $val);
     }
     
     public static function call($selector, $func, ...$args) {
         [$base,] = self::parseSelector($selector);
-        return ($base ? $base . '.' : '') . $func . '(' . implode(',', array_map(fn($arg) => self::encodeJsValue($arg), $args))  . ');';
+        return self::rbCall($base, $func, ...$args);
     }
     
     protected static function makeQuerySelector($cssSelector) {
@@ -40,12 +49,12 @@ class JsMaker {
     
     public static function eChange($selector, $attr, $val) {
         [$base, $cssSelector] = self::parseSelector($selector);
-        return self::change($base, self::makeQuerySelector($cssSelector) . '.' . $attr, $val);
+        return self::rbChange($base, self::makeQuerySelector($cssSelector) . '.' . $attr, $val);
     }
     
     public static function eCall($selector, $func, ...$args) {
         [$base, $cssSelector] = self::parseSelector($selector);
-        return self::call($base, self::makeQuerySelector($cssSelector) . '.' . $func, ...$args);
+        return self::rbCall($base, self::makeQuerySelector($cssSelector) . '.' . $func, ...$args);
     }
    
     public static function setTimeout($js, $s) {
@@ -57,6 +66,6 @@ class JsMaker {
     }
    
     public static function redirect($url, $selector = '!t') {
-        return self::eChange($selector, 'location.href', $url);
+        return self::change($selector, 'location.href', $url);
     }
 }
